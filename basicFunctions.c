@@ -92,9 +92,9 @@ void basicFunctions() {
 
     //MMDVM is doing a clean shutdown.
     if ((page==0)&&(strstr(TXbuffer,"MMDVM STOPPED")>0)){
-        sprintf(text, "t30.txt=\"\"");
+        sprintf(text, "rxFreq.txt=\"\"");
         sendCommand(text);
-        sprintf(text, "t2.txt=\"\"");
+        sprintf(text, "timeNow.txt=\"\"");
     }
 
     //remove dim if necessary
@@ -107,14 +107,14 @@ void basicFunctions() {
 
     // if date/time is sent, check IP interface from time to time:
     //   and disk free in %
-    if ((page==0)&&(strstr(TXbuffer,"t2.txt=")>0)&&(check++>100)) {
+    if ((page==0)&&(strstr(TXbuffer,"timeNow.txt=")>0)&&(check++>100)) {
         getNetworkInterface(ipaddr);
         netIsActive[0]=getInternetStatus(check);
-        sprintf(TXbuffer, "t3.txt=\"%s\"", ipaddr);
+        sprintf(TXbuffer, "ipAddy.txt=\"%s\"", ipaddr);
         check=0;
     }
     // check temp & CPU freq (also not too often)
-    if ((page==0)&&(strstr(TXbuffer,"t2.txt=")>0)&&(check%8==0)) {
+    if ((page==0)&&(strstr(TXbuffer,"timeNow.txt=")>0)&&(check%8==0)) {
         FILE *deviceInfoFile;
         double val;
 //see basicFunction.h for info about defining the XTRA condition
@@ -122,12 +122,12 @@ void basicFunctions() {
         //CPU temperature
         deviceInfoFile = fopen ("/sys/class/thermal/thermal_zone0/temp", "r");
         if (deviceInfoFile == NULL) {
-            sprintf(text, "t20.txt=\"?\"");
+            sprintf(text, "cpuTemp.txt=\"?\"");
         } else {
             fscanf (deviceInfoFile, "%lf", &val);
             val /= 1000;
 
-            sprintf(text, "t20.txt=\"%2.2f %cC\"", val, 176);
+            sprintf(text, "cpuTemp.txt=\"%2.2f %cC\"", val, 176);
             /*
             If you live in one of the 5 countries (Bahamas, Belize, Cayman Islands,
              Palau, US) where they use degrees F, you could comment the line above
@@ -142,23 +142,23 @@ void basicFunctions() {
        //CPU frequency
         deviceInfoFile = fopen ("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq", "r");
         if (deviceInfoFile == NULL) {
-            sprintf(text, "t21.txt=\"?\"");
+            sprintf(text, "cpuFreq.txt=\"?\"");
         } else {
             fscanf (deviceInfoFile, "%lf", &val);
             val /= 1000;
-            sprintf(text, "t21.txt=\"%0.0f MHz\"", val);
+            sprintf(text, "cpuFreq.txt=\"%0.0f MHz\"", val);
             fclose(deviceInfoFile);
         }
         sendCommand(text);
         //CPU loadavg 1 min
         deviceInfoFile = fopen ("/proc/loadavg", "r");
         if (deviceInfoFile == NULL) {
-            sprintf(text, "t22.txt=\"?\"");
+            sprintf(text, "cpuLoad.txt=\"?\"");
             sendCommand(text);
             sprintf(text, "cpuload.val=0");
         } else {
             fscanf (deviceInfoFile, "%lf", &val);
-            sprintf(text, "t22.txt=\"%0.2f\"", val);
+            sprintf(text, "cpuLoad.txt=\"%0.2f\"", val);
             sendCommand(text);
             sprintf(text, "cpuload.val=%d", (int)(val*100));
             fclose(deviceInfoFile);
@@ -168,9 +168,9 @@ void basicFunctions() {
         //Disk free %
         int f=getDiskFree(FALSE);
         if (f<0) 
-            sprintf(text, "t23.txt=\"??\"");
+            sprintf(text, "diskUse.txt=\"??\"");
         else
-            sprintf(text, "t23.txt=\"%d\"",getDiskFree(FALSE));
+            sprintf(text, "diskUse.txt=\"%d\"",getDiskFree(FALSE));
         sendCommand(text);
 
 #ifdef XTRA
@@ -178,17 +178,17 @@ void basicFunctions() {
         float fx;
         fx=RXfrequency;
         fx/=1000000;
-        sprintf(text, "t30.txt=\"%3.4fMHz\"",fx);
+        sprintf(text, "rxFreq.txt=\"%3.4fMHz\"",fx);
         sendCommand(text);
 
         //TXFrequency
         fx=TXfrequency;
         fx/=1000000;
-        sprintf(text, "t32.txt=\"%3.4fMHz\"",fx);
+        sprintf(text, "txFreq.txt=\"%3.4fMHz\"",fx);
         sendCommand(text);
 
         //Location
-        sprintf(text, "t31.txt=\"%s\"",location);
+        sprintf(text, "infoMsg.txt=\"%s\"",location);
         sendCommand(text);
 #endif
 
@@ -203,38 +203,38 @@ void basicFunctions() {
 
         if (showModesStatus) {
             //Modes enabled/disabled
-            sprintf(text, "A1.bco=%d",modeIsEnabled[C_DSTAR] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "A1.pco=%d",modeIsEnabled[C_DSTAR] ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "A2.bco=%d",modeIsEnabled[C_DMR] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "A2.pco=%d",modeIsEnabled[C_DMR] ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "A3.bco=%d",modeIsEnabled[C_YSF] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "A3.pco=%d",modeIsEnabled[C_YSF] ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "A4.bco=%d",modeIsEnabled[C_P25] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "A4.pco=%d",modeIsEnabled[C_P25] ?  pcoEN : pcoDIS); sendCommand(text);
-    //        sprintf(text, "A5.bco=%d",modeIsEnabled[C_YSFDMR] ?  bcoEN : bcoDIS); sendCommand(text);
-    //        sprintf(text, "A5.pco=%d",modeIsEnabled[C_YSFDMR] ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "A6.bco=%d",modeIsEnabled[C_NXDN] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "A6.pco=%d",modeIsEnabled[C_NXDN] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "dstarEN.bco=%d",modeIsEnabled[C_DSTAR] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "dstarEN.pco=%d",modeIsEnabled[C_DSTAR] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "dmrEN.bco=%d",modeIsEnabled[C_DMR] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "dmrEN.pco=%d",modeIsEnabled[C_DMR] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "ysfEN.bco=%d",modeIsEnabled[C_YSF] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "ysfEN.pco=%d",modeIsEnabled[C_YSF] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "p25EN.bco=%d",modeIsEnabled[C_P25] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "p25EN.pco=%d",modeIsEnabled[C_P25] ?  pcoEN : pcoDIS); sendCommand(text);
+    //        sprintf(text, "ysfdmrEN.bco=%d",modeIsEnabled[C_YSFDMR] ?  bcoEN : bcoDIS); sendCommand(text);
+    //        sprintf(text, "ysfdmrEN.pco=%d",modeIsEnabled[C_YSFDMR] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "nxdnEN.bco=%d",modeIsEnabled[C_NXDN] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "nxdnEN.pco=%d",modeIsEnabled[C_NXDN] ?  pcoEN : pcoDIS); sendCommand(text);
     
             //Internet
-            sprintf(text, "N0.bco=%d",netIsActive[0] ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N0.pco=%d",netIsActive[0] ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "netEN.bco=%d",netIsActive[0] ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "netEN.pco=%d",netIsActive[0] ?  pcoEN : pcoDIS); sendCommand(text);
     
             //Network connections
-            sprintf(text, "N1.bco=%d",(modeIsEnabled[C_DSTARNET]&&(proc_find("ircddbgatewayd")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N1.pco=%d",(modeIsEnabled[C_DSTARNET]&&(proc_find("ircddbgatewayd")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "N2.bco=%d",(modeIsEnabled[C_DMRNET]&&(proc_find("MMDVMHost")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N2.pco=%d",(modeIsEnabled[C_DMRNET]&&(proc_find("MMDVMHost")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
-    //        sprintf(text, "N2.bco=%d",(modeIsEnabled[]&&(proc_find("DMRGateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-    //        sprintf(text, "N2.pco=%d",(modeIsEnabled[]&&(proc_find("DMRGateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "N3.bco=%d",(modeIsEnabled[C_YSFNET]&&(proc_find("YSFGateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N3.pco=%d",(modeIsEnabled[C_YSFNET]&&(proc_find("YSFGateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
-            sprintf(text, "N4.bco=%d",(modeIsEnabled[C_P25NET]&&(proc_find("P25Gateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N4.pco=%d",(modeIsEnabled[C_P25NET]&&(proc_find("P25Gateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
-    //        sprintf(text, "N5.bco=%d",(modeIsEnabled[C_YSFDMRNET]&&(proc_find("")>0) ?  bcoEN : bcoDIS)); sendCommand(text);
-    //        sprintf(text, "N5.pco=%d",(modeIsEnabled[C_YSFDM_NET]&&(proc_find("")>0) ?  pcoEN : pcoDIS)); sendCommand(text);
-            sprintf(text, "N6.bco=%d",(modeIsEnabled[C_NXDNNET]&&(proc_find("MMDVMHost")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
-            sprintf(text, "N6.pco=%d",(modeIsEnabled[C_NXDNNET]&&(proc_find("MMDVMHost")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "ircddbEN.bco=%d",(modeIsEnabled[C_DSTARNET]&&(proc_find("ircddbgatewayd")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "ircddbEN.pco=%d",(modeIsEnabled[C_DSTARNET]&&(proc_find("ircddbgatewayd")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "dmrNetEN.bco=%d",(modeIsEnabled[C_DMRNET]&&(proc_find("MMDVMHost")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "dmrNetEN.pco=%d",(modeIsEnabled[C_DMRNET]&&(proc_find("MMDVMHost")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+    //        sprintf(text, "dmrGWEN.bco=%d",(modeIsEnabled[]&&(proc_find("DMRGateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+    //        sprintf(text, "dmrGWEN.pco=%d",(modeIsEnabled[]&&(proc_find("DMRGateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "ysfGWEN.bco=%d",(modeIsEnabled[C_YSFNET]&&(proc_find("YSFGateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "ysfGWEN.pco=%d",(modeIsEnabled[C_YSFNET]&&(proc_find("YSFGateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+            sprintf(text, "p25GWEN.bco=%d",(modeIsEnabled[C_P25NET]&&(proc_find("P25Gateway")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "p25GWEN.pco=%d",(modeIsEnabled[C_P25NET]&&(proc_find("P25Gateway")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
+    //        sprintf(text, "ysfdGWEN.bco=%d",(modeIsEnabled[C_YSFDMRNET]&&(proc_find("")>0) ?  bcoEN : bcoDIS)); sendCommand(text);
+    //        sprintf(text, "ysfdGWEN.pco=%d",(modeIsEnabled[C_YSFDM_NET]&&(proc_find("")>0) ?  pcoEN : pcoDIS)); sendCommand(text);
+            sprintf(text, "nxdnGWEN.bco=%d",(modeIsEnabled[C_NXDNNET]&&(proc_find("MMDVMHost")>0)) ?  bcoEN : bcoDIS); sendCommand(text);
+            sprintf(text, "nxdnGWEN.pco=%d",(modeIsEnabled[C_NXDNNET]&&(proc_find("MMDVMHost")>0)) ?  pcoEN : pcoDIS); sendCommand(text);
 
         }
         //Done
